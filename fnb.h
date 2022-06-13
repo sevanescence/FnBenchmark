@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <chrono>
 
 template <
@@ -14,46 +15,45 @@ auto since(const std::chrono::time_point<clock_t, duration_t> &start)
 
 template <
 	typename duration_t = std::chrono::milliseconds,
-	typename Func, typename ... Params
+	typename R = void(*), typename ... Params
 >
-auto bench(Func func, Params ... params) requires (std::is_void_v<decltype(func())>)
+auto bench(R(*func)(Params...), Params ... params)
 {
 	using namespace std::chrono;
 	steady_clock::time_point start = steady_clock::now();
-	func(params...);
-	return since<duration_t>(start).count();
-}
+	if constexpr (std::is_void_v<decltype(func(params...))>)
+	{
+		func(params...);
+		return since<duration_t>(start);
+	}
+	else if constexpr (!std::is_void_v<decltype(func(params...))>)
+	{
+		auto r = func(params...);
+		return since<duration_t>(start);
+	}
 
-template <
-	typename duration_t = std::chrono::milliseconds,
-	typename Func, typename ... Params
->
-auto bench(Func func, Params ... params) requires (!std::is_void_v<decltype(func())>)
-{
-	using namespace std::chrono;
-	steady_clock::time_point start = steady_clock::now();
-	auto r = func(params...);
-	return since<duration_t>(start).count();
 }
 
 //template <
 //	typename duration_t = std::chrono::milliseconds,
-//	typename Func, typename ... Params
+//	typename R = void(*), typename ... Params
 //>
-//auto bench(Func func, Params ... params)
+//auto bench(R(*func)(Params...), Params ... params) requires (std::is_void_v<decltype(func(params...))>)
 //{
 //	using namespace std::chrono;
 //	steady_clock::time_point start = steady_clock::now();
+//	func(params...);
+//	return since<duration_t>(start).count();
+//}
 //
-//	if constexpr (std::is_void_v<Func>)
-//	{
-//		func(params...);
-//	}
-//	else
-//	{
-//		auto r = func(params...);
-//		return since<duration_t>(start).count();
-//	}
-//
+//template <
+//	typename duration_t = std::chrono::milliseconds,
+//	typename R = int(*), typename ... Params
+//>
+//auto bench(R(*func)(Params...), Params ... params)
+//{
+//	using namespace std::chrono;
+//	steady_clock::time_point start = steady_clock::now();
+//	auto r = func(params...);
 //	return since<duration_t>(start).count();
 //}
