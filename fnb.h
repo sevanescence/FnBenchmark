@@ -20,9 +20,11 @@ template <
 >
 auto bench(F &&func, Args &&... args)
 {
+    using R = std::invoke_result_t<F, Args...>;
+
     using namespace std::chrono;
     steady_clock::time_point start = steady_clock::now();
-    if constexpr (std::is_void_v<std::invoke_result_t<F, Args...>> || std::is_trivially_destructible_v<std::invoke_result_t<F, Args...>>) {
+    if constexpr (std::is_void_v<R> || std::is_trivially_destructible_v<R>) {
         (void)std::invoke(func, std::forward<Args>(args)...);
         return since<Duration>(start);
     }
