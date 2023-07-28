@@ -46,4 +46,5 @@ int main()
     std::cout << "bar(): " << bench(&bar, 5) << "ms\n";
     bench(&baz);
     std::cout << "CreateClass() " << bench(CreateClass) << "\n";
+    std::cout << "End of test.\n";
 }
